@@ -1,0 +1,7 @@
+# Default owner
+* @3115a083
+
+# Security- and automation-sensitive files
+/.github/ @3115a083
+/SECURITY.md @3115a083
+/.gitignore @3115a083
