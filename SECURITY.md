@@ -25,4 +25,6 @@ Eine gute Meldung enthält betroffene Version, reproduzierbare Schritte, erwarte
 
 ## Repository-Härtung
 
-CI führt einen Android-Build, Dependency Review und Secret Scanning aus. Branch Protection und GitHub Secret Scanning sollten zusätzlich in den Repository-Einstellungen aktiviert werden, sofern der Tarif dies unterstützt.
+CI baut Debug und Release und führt Gitleaks Secret Scanning aus. Ein Dependency-Review-Workflow ist vorhanden. Damit er wirksam wird, muss GitHubs Dependency Graph in den Repository-Einstellungen aktiviert werden. Branch Protection bzw. ein Ruleset für `main` sowie GitHubs serverseitige Secret-Scanning-Funktionen sollten zusätzlich aktiviert werden, sofern für das Repository verfügbar.
+
+Diese Repository-Admin-Einstellungen lassen sich nicht über die aktuell verwendete GitHub-App-Verbindung ändern und müssen deshalb in GitHub selbst gesetzt werden.
