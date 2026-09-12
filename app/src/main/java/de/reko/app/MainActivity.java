@@ -27,6 +27,8 @@ import com.google.android.material.textfield.TextInputLayout;
 import org.json.JSONObject;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -156,7 +158,33 @@ public class MainActivity extends AppCompatActivity {
     private void confirmImport(){new AlertDialog.Builder(this).setTitle("Backup importieren?").setMessage("Importierte Datensätze werden dem aktiven Profil hinzugefügt. Bestehende Daten werden nicht überschrieben.").setPositiveButton("Datei wählen",(d,w)->openBackup.launch(new String[]{"application/json","text/plain"})).setNegativeButton("Abbrechen",null).show();}
     private void requestCalendar(){if(ContextCompat.checkSelfPermission(this,Manifest.permission.READ_CALENDAR)==PackageManager.PERMISSION_GRANTED)toast("Kalenderzugriff ist bereits erlaubt.");else calendarPermission.launch(Manifest.permission.READ_CALENDAR);}
     private void handleIntent(Intent i){String a=i.getAction();if("de.reko.app.NEW_TRIP".equals(a)){nav.setSelectedItemId(2);return;}if("de.reko.app.NEW_HOSPITALITY".equals(a)){nav.setSelectedItemId(3);return;}if(Intent.ACTION_SEND.equals(a)){Uri u=i.getParcelableExtra(Intent.EXTRA_STREAM);if(u!=null)importShared(u,i.getType());}}
-    private void importShared(Uri uri,String mime){try{String safe="shared-"+System.currentTimeMillis();File out=new File(getFilesDir(),safe);MessageDigest md=MessageDigest.getInstance("SHA-256");try(InputStream in=getContentResolver().openInputStream(uri);OutputStream os=new FileOutputStream(out)){if(in==null)throw new IOException("Datei nicht lesbar");byte[] buf=new byte[8192];int n;long total=0;while((n=in.read(buf))>0){total+=n;if(total>25L*1024*1024)throw new IOException("Datei größer als 25 MB");md.update(buf,0,n);os.write(buf,0,n);}}toast("Geteilte Datei lokal übernommen. Zuordnung zu Vorgängen folgt in einer späteren Ausbaustufe.");}catch(Exception e){toast("Datei konnte nicht sicher importiert werden.");}}
+
+    private void importShared(Uri uri,String mime){
+        try{
+            if(!"content".equalsIgnoreCase(uri.getScheme())) throw new SecurityException("Nur content-URIs erlaubt");
+            String authority=uri.getAuthority();
+            if(authority==null || authority.isBlank()) throw new SecurityException("Fehlende URI-Autorität");
+            if(authority.equals(getPackageName()) || authority.startsWith(getPackageName()+".")) throw new SecurityException("Eigene Provider nicht als Share-Quelle erlaubt");
+            String path=uri.getPath();
+            if(path==null) throw new SecurityException("Fehlender URI-Pfad");
+            Path normalized=FileSystems.getDefault().getPath(path).normalize();
+            if(normalized.startsWith("/data") || normalized.startsWith("/proc") || normalized.startsWith("/sys") || normalized.startsWith("/dev")) throw new SecurityException("Privater Systempfad nicht erlaubt");
+            String resolvedMime=getContentResolver().getType(uri);
+            if(resolvedMime==null) resolvedMime=mime;
+            if(!("application/pdf".equals(resolvedMime) || "image/jpeg".equals(resolvedMime) || "image/png".equals(resolvedMime))) throw new SecurityException("Dateityp nicht erlaubt");
+
+            String safe="shared-"+System.currentTimeMillis();
+            File out=new File(getFilesDir(),safe);
+            MessageDigest md=MessageDigest.getInstance("SHA-256");
+            try(InputStream in=getContentResolver().openInputStream(uri);OutputStream os=new FileOutputStream(out)){
+                if(in==null)throw new IOException("Datei nicht lesbar");
+                byte[] buf=new byte[8192];int n;long total=0;
+                while((n=in.read(buf))>0){total+=n;if(total>25L*1024*1024)throw new IOException("Datei größer als 25 MB");md.update(buf,0,n);os.write(buf,0,n);}
+            }
+            toast("Geteilte Datei lokal übernommen. Zuordnung zu Vorgängen folgt in einer späteren Ausbaustufe.");
+        }catch(Exception e){toast("Datei konnte nicht sicher importiert werden.");}
+    }
+
     private void writeBackup(Uri uri){try(OutputStream o=getContentResolver().openOutputStream(uri)){if(o==null)throw new IOException();o.write(db.exportProfile(profileId).toString(2).getBytes(StandardCharsets.UTF_8));toast("Backup exportiert.");}catch(Exception e){toast("Backup-Export fehlgeschlagen.");}}
     private void readBackup(Uri uri){try(InputStream in=getContentResolver().openInputStream(uri)){if(in==null)throw new IOException();ByteArrayOutputStream b=new ByteArrayOutputStream();byte[] x=new byte[8192];int n;long total=0;while((n=in.read(x))>0){total+=n;if(total>5L*1024*1024)throw new IOException("zu groß");b.write(x,0,n);}db.importInto(profileId,new JSONObject(b.toString(StandardCharsets.UTF_8)));toast("Backup importiert.");nav.setSelectedItemId(1);}catch(Exception e){toast("Backup ungültig oder beschädigt.");}}
     private void open(String url){startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse(url)));}
