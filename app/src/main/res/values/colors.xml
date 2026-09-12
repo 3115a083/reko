@@ -1,0 +1,5 @@
+<resources>
+    <color name="reko_primary">#315D55</color>
+    <color name="reko_on_primary">#FFFFFF</color>
+    <color name="reko_surface">#F7F9F7</color>
+</resources>

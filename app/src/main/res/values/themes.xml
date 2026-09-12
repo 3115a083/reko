@@ -1,0 +1,8 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Theme.ReKo" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/reko_primary</item>
+        <item name="colorOnPrimary">@color/reko_on_primary</item>
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowLightStatusBar">?attr/isLightTheme</item>
+    </style>
+</resources>

@@ -1,60 +1,22 @@
-# Secrets and environment files
-.env
-.env.*
-!.env.example
-*.pem
-*.key
-*.p12
-*.pfx
-*.jks
-*.keystore
-*.mobileprovision
-secrets/
-.private/
-private/
-local-only/
-
-# Local databases and user data
-*.db
-*.sqlite
-*.sqlite3
-backups/
-user-data/
-receipts/
-
-# Android / Gradle
+*.iml
 .gradle/
+/local.properties
+/.idea/
+.DS_Store
+/build/
 **/build/
-local.properties
-captures/
+/captures/
 .externalNativeBuild/
 .cxx/
+*.jks
+*.keystore
+*.p12
+*.pem
+*.key
+*.env
+.env.*
+secrets.properties
+keystore.properties
+google-services.json
 *.apk
 *.aab
-*.apks
-
-# Java / Kotlin
-*.class
-out/
-
-# Node / web tooling
-node_modules/
-dist/
-coverage/
-.npm/
-.pnpm-store/
-.yarn/cache/
-*.log
-
-# IDE / OS
-.idea/
-*.iml
-.vscode/
-.DS_Store
-Thumbs.db
-
-# Temporary files
-*.tmp
-*.temp
-*.bak
-*.swp

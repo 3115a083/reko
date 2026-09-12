@@ -1,0 +1,31 @@
+package de.reko.app;
+
+import android.content.*;
+import android.database.Cursor;
+import android.database.sqlite.*;
+import org.json.*;
+import java.util.*;
+
+final class RekoDb extends SQLiteOpenHelper {
+    private static final String DB = "reko.db";
+    RekoDb(Context c) { super(c, DB, null, 1); }
+    @Override public void onCreate(SQLiteDatabase db) {
+        db.execSQL("CREATE TABLE profiles(id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT NOT NULL,created_at INTEGER NOT NULL)");
+        db.execSQL("CREATE TABLE trips(id INTEGER PRIMARY KEY AUTOINCREMENT,profile_id INTEGER NOT NULL,start_date TEXT NOT NULL,end_date TEXT NOT NULL,destination TEXT NOT NULL,purpose TEXT NOT NULL,notes TEXT NOT NULL DEFAULT '',created_at INTEGER NOT NULL,FOREIGN KEY(profile_id) REFERENCES profiles(id) ON DELETE CASCADE)");
+        db.execSQL("CREATE TABLE hospitality(id INTEGER PRIMARY KEY AUTOINCREMENT,profile_id INTEGER NOT NULL,date TEXT NOT NULL,place TEXT NOT NULL,amount_cents INTEGER NOT NULL,participants TEXT NOT NULL,purpose TEXT NOT NULL,tip_cents INTEGER NOT NULL DEFAULT 0,created_at INTEGER NOT NULL,FOREIGN KEY(profile_id) REFERENCES profiles(id) ON DELETE CASCADE)");
+        db.execSQL("CREATE TABLE attachments(id INTEGER PRIMARY KEY AUTOINCREMENT,profile_id INTEGER NOT NULL,name TEXT NOT NULL,mime TEXT NOT NULL,sha256 TEXT NOT NULL,path TEXT NOT NULL,created_at INTEGER NOT NULL,FOREIGN KEY(profile_id) REFERENCES profiles(id) ON DELETE CASCADE)");
+        ContentValues v = new ContentValues(); v.put("name","Standard"); v.put("created_at",System.currentTimeMillis()); db.insert("profiles",null,v);
+    }
+    @Override public void onUpgrade(SQLiteDatabase db,int oldVersion,int newVersion) {}
+    long activeProfile(Context c){ long id=c.getSharedPreferences("reko",0).getLong("profile",1); try(Cursor x=getReadableDatabase().rawQuery("SELECT id FROM profiles WHERE id=?",new String[]{String.valueOf(id)})){ if(x.moveToFirst()) return id; } c.getSharedPreferences("reko",0).edit().putLong("profile",1).apply(); return 1; }
+    void setActiveProfile(Context c,long id){ c.getSharedPreferences("reko",0).edit().putLong("profile",id).apply(); }
+    ArrayList<String[]> profiles(){ ArrayList<String[]> r=new ArrayList<>(); try(Cursor c=getReadableDatabase().rawQuery("SELECT id,name FROM profiles ORDER BY id",null)){ while(c.moveToNext()) r.add(new String[]{c.getString(0),c.getString(1)}); } return r; }
+    long addProfile(String name){ ContentValues v=new ContentValues();v.put("name",name.trim());v.put("created_at",System.currentTimeMillis());return getWritableDatabase().insertOrThrow("profiles",null,v); }
+    void deleteProfile(long id){ if(id==1) return; getWritableDatabase().delete("profiles","id=?",new String[]{String.valueOf(id)}); }
+    void addTrip(long p,String start,String end,String dest,String purpose,String notes){ ContentValues v=new ContentValues();v.put("profile_id",p);v.put("start_date",start);v.put("end_date",end);v.put("destination",dest.trim());v.put("purpose",purpose.trim());v.put("notes",notes.trim());v.put("created_at",System.currentTimeMillis());getWritableDatabase().insertOrThrow("trips",null,v); }
+    void addHospitality(long p,String date,String place,long cents,String people,String purpose,long tip){ ContentValues v=new ContentValues();v.put("profile_id",p);v.put("date",date);v.put("place",place.trim());v.put("amount_cents",cents);v.put("participants",people.trim());v.put("purpose",purpose.trim());v.put("tip_cents",tip);v.put("created_at",System.currentTimeMillis());getWritableDatabase().insertOrThrow("hospitality",null,v); }
+    ArrayList<String> summary(long p){ ArrayList<String> r=new ArrayList<>(); try(Cursor c=getReadableDatabase().rawQuery("SELECT start_date,destination,purpose FROM trips WHERE profile_id=? ORDER BY id DESC LIMIT 30",new String[]{String.valueOf(p)})){ while(c.moveToNext()) r.add("Reise · "+c.getString(0)+" · "+c.getString(1)+"\n"+c.getString(2)); } try(Cursor c=getReadableDatabase().rawQuery("SELECT date,place,amount_cents,purpose FROM hospitality WHERE profile_id=? ORDER BY id DESC LIMIT 30",new String[]{String.valueOf(p)})){ while(c.moveToNext()) r.add("Bewirtung · "+c.getString(0)+" · "+c.getString(1)+" · "+String.format(Locale.GERMANY,"%.2f €",c.getLong(2)/100.0)+"\n"+c.getString(3)); } return r; }
+    JSONObject exportProfile(long p) throws JSONException { JSONObject root=new JSONObject();root.put("format","reko-backup");root.put("version",1);root.put("profileId",p);root.put("exportedAt",System.currentTimeMillis());root.put("trips",queryJson("SELECT start_date,end_date,destination,purpose,notes,created_at FROM trips WHERE profile_id=?",p,new String[]{"start_date","end_date","destination","purpose","notes","created_at"}));root.put("hospitality",queryJson("SELECT date,place,amount_cents,participants,purpose,tip_cents,created_at FROM hospitality WHERE profile_id=?",p,new String[]{"date","place","amount_cents","participants","purpose","tip_cents","created_at"}));return root; }
+    private JSONArray queryJson(String sql,long p,String[] cols) throws JSONException { JSONArray a=new JSONArray();try(Cursor c=getReadableDatabase().rawQuery(sql,new String[]{String.valueOf(p)})){while(c.moveToNext()){JSONObject o=new JSONObject();for(int i=0;i<cols.length;i++){if(c.getType(i)==Cursor.FIELD_TYPE_INTEGER)o.put(cols[i],c.getLong(i));else o.put(cols[i],c.getString(i));}a.put(o);}}return a;}
+    void importInto(long p,JSONObject root) throws JSONException { if(!"reko-backup".equals(root.optString("format"))||root.optInt("version")!=1) throw new JSONException("Ungültiges Backup"); SQLiteDatabase db=getWritableDatabase();db.beginTransaction();try{JSONArray t=root.optJSONArray("trips");if(t!=null)for(int i=0;i<t.length();i++){JSONObject o=t.getJSONObject(i);addTrip(p,o.getString("start_date"),o.getString("end_date"),o.getString("destination"),o.getString("purpose"),o.optString("notes"));}JSONArray h=root.optJSONArray("hospitality");if(h!=null)for(int i=0;i<h.length();i++){JSONObject o=h.getJSONObject(i);addHospitality(p,o.getString("date"),o.getString("place"),o.getLong("amount_cents"),o.getString("participants"),o.getString("purpose"),o.optLong("tip_cents"));}db.setTransactionSuccessful();}finally{db.endTransaction();}}
+}
