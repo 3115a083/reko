@@ -4,10 +4,16 @@ ReKo ist eine local-first Android-App zur Erfassung und Organisation von Reiseko
 
 ## Stand
 
-Aktuelle Testversion: **0.1.0**.
+Aktuelle Testversion: **0.1.1**.
 
-### In dieser V1 umgesetzt
+### In dieser Testversion umgesetzt
 
+- Material-3-Oberfläche mit MaterialToolbar, Cards, Outlined Fields und Material-3-Typografie
+- systemgerechte Edge-to-edge-Behandlung für Android mit targetSdk 35, sichtbare Inhalte werden um Status- und Navigationsleisten eingerückt
+- Übersicht als Startseite
+- passende eigene Navigations-Icons für Übersicht, Reise, Bewirtung und Einstellungen
+- GitHub-Link und Updateprüfung im Footer der Einstellungen
+- Adaptive Launcher Icon auf Basis des freigegebenen ReKo-App-Icons
 - mehrere lokal getrennte Profile
 - Reiseerfassung mit Start, Ende, Ziel, beruflichem Anlass und Notiz
 - Bewirtungserfassung mit Datum, Betrieb, Betrag, Teilnehmern, Anlass und Trinkgeld
@@ -16,14 +22,19 @@ Aktuelle Testversion: **0.1.0**.
 - Android Share Target für PDF, JPEG und PNG mit Größenlimit und lokaler Kopie
 - Launcher-Shortcuts für „Reise eintragen“ und „Bewirtung erfassen“
 - optionale READ_CALENDAR-Berechtigung, nur auf ausdrückliche Nutzeraktion
-- Update-Link zur GitHub-Release-Seite
 - Light/Dark über Material 3 DayNight
 - keine Telemetrie, keine Werbung, kein zentraler ReKo-Server
 - Android-Systembackup deaktiviert
 
 ### Noch nicht vollständig umgesetzt
 
-Die Planungsgrundlage ist umfangreicher als diese erste Testversion. Geplant sind unter anderem Reisetage und Reiseabschnitte, Fahrzeuge und Reisenebenkosten, Mahlzeiten und Pauschalen, Dreimonatsregel-Hinweise, Dokumentzuordnung, Scanner-Bearbeitung, Kalenderauswahl je Profil, strukturierte Vollständigkeitsprüfung, Fremdwährungen, Regelversionierung, verschlüsselte Backups und eine optionale Lexware-Office-Integration.
+Die Planungsgrundlage ist umfangreicher als diese Testversion. Geplant sind unter anderem Reisetage und Reiseabschnitte, Fahrzeuge und Reisenebenkosten, Mahlzeiten und Pauschalen, Dreimonatsregel-Hinweise, vollständige Dokumentzuordnung und Scanner-Bearbeitung, Kalenderauswahl je Profil, strukturierte Vollständigkeitsprüfung, Fremdwährungen, Regelversionierung, verschlüsselte Backups und eine optionale Lexware-Office-Integration.
+
+## Bedienung und Design
+
+Die App verwendet vier Hauptbereiche in der Bottom Navigation: Übersicht, Reise, Bewirtung und Einstellungen. Übersicht ist beim normalen Start ausgewählt. Auf Geräten mit aktueller Android-Edge-to-edge-Darstellung werden Systemleisten-Inset explizit berücksichtigt, damit Bedienelemente nicht hinter Statusleiste, Benachrichtigungsbereich oder Systemnavigation liegen.
+
+GitHub-Link, Updateprüfung und `Vibecoded with ❤️` stehen gemeinsam am Ende der Einstellungen im Footer.
 
 ## Datenschutz und Sicherheit
 
@@ -37,21 +48,25 @@ Voraussetzungen: JDK 17, Android SDK 35 und Gradle 8.9.
 
 ```bash
 gradle assembleDebug
+gradle assembleRelease
 ```
 
 Die Debug-APK liegt danach unter `app/build/outputs/apk/debug/app-debug.apk`.
 
 ## Testhinweise
 
-Für den ersten Test besonders prüfen:
+Für diesen Stand besonders prüfen:
 
-1. Profil anlegen und wechseln.
-2. Reise und Bewirtung in unterschiedlichen Profilen erfassen.
-3. Backup eines Profils exportieren und in ein anderes Profil importieren.
-4. PDF oder Bild aus einer anderen Android-App an ReKo teilen.
-5. App-Icon lange drücken und beide Shortcuts testen.
-6. Light und Dark Mode testen.
-7. Kalenderzugriff ablehnen und erneut aus Einstellungen anfordern.
+1. App starten und prüfen, dass Übersicht die Startseite ist.
+2. Auf Geräten mit Gestensteuerung und klassischer Navigation prüfen, dass nichts hinter den Systemleisten liegt.
+3. Alle vier Bottom-Navigation-Icons und deren Zuordnung prüfen.
+4. Einstellungen bis zum Ende scrollen und GitHub-Link, Updateprüfung und Footer prüfen.
+5. Launcher-Icon mit runder und Squircle-Maske prüfen.
+6. Profil anlegen und wechseln.
+7. Reise und Bewirtung in unterschiedlichen Profilen erfassen.
+8. Backup eines Profils exportieren und importieren.
+9. PDF oder Bild aus einer anderen Android-App an ReKo teilen.
+10. Light und Dark Mode testen.
 
 ## Sicherheit melden
 
