@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">ReKo</string>
+    <string name="shortcut_trip">Reise eintragen</string>
+    <string name="shortcut_hospitality">Bewirtung erfassen</string>
+</resources>

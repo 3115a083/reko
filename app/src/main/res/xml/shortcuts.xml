@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut android:shortcutId="new_trip" android:enabled="true" android:icon="@drawable/ic_trip">
+        <intent android:action="de.reko.app.NEW_TRIP" android:targetPackage="de.reko.app" android:targetClass="de.reko.app.MainActivity" />
+        <short-label android:string="@string/shortcut_trip" />
+        <long-label android:string="@string/shortcut_trip" />
+    </shortcut>
+    <shortcut android:shortcutId="new_hospitality" android:enabled="true" android:icon="@drawable/ic_hospitality">
+        <intent android:action="de.reko.app.NEW_HOSPITALITY" android:targetPackage="de.reko.app" android:targetClass="de.reko.app.MainActivity" />
+        <short-label android:string="@string/shortcut_hospitality" />
+        <long-label android:string="@string/shortcut_hospitality" />
+    </shortcut>
+</shortcuts>

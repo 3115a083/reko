@@ -1,37 +1,28 @@
 # Security Policy
 
-## Scope
+## Unterstützte Version
 
-This repository contains the source code for the ReKo web and Android applications. Both applications are designed to process sensitive travel, hospitality and receipt data locally wherever possible.
+Aktuell wird ausschließlich die neueste Version auf `main` unterstützt.
 
-## Reporting a vulnerability
+## Sicherheitsprinzipien
 
-Do not publish suspected vulnerabilities, secrets, tokens, personal data or exploit details in public issues.
+- Local-first, keine zentrale Speicherung persönlicher ReKo-Daten.
+- Keine Telemetrie oder Werbe-SDKs.
+- Minimale Android-Berechtigungen.
+- Kein `WRITE_CALENDAR` und keine breite Speicherberechtigung.
+- Kein Cleartext-Netzwerkverkehr.
+- Android-Systembackup für App-Daten deaktiviert.
+- Build- und Signing-Secrets gehören nicht ins Repository.
+- Eingehende Share-Dateien werden als nicht vertrauenswürdig behandelt und größenbegrenzt lokal kopiert.
+- Backup-Dateien werden vor Import auf Format und Version geprüft.
+- Release-Builds sind nicht debuggable und werden minifiziert.
 
-Report security problems privately to the repository owner through a private GitHub contact channel. If no private contact method is configured yet, the repository owner should enable GitHub Private Vulnerability Reporting before accepting external security reports.
+## Schwachstellen melden
 
-Include:
+Bitte keine Sicherheitslücken, Tokens, Schlüssel oder personenbezogenen Beispieldaten in öffentlichen Issues posten. Nutze GitHubs privaten Security-Advisory-Meldeweg für dieses Repository, sofern verfügbar.
 
-- affected component and version or commit
-- reproducible steps
-- expected and actual behavior
-- security impact
-- suggested remediation, if known
+Eine gute Meldung enthält betroffene Version, reproduzierbare Schritte, erwartetes und tatsächliches Verhalten sowie eine Einschätzung möglicher Auswirkungen. Keine echten Nutzerdaten mitschicken.
 
-## Security requirements for contributions
+## Repository-Härtung
 
-- Never commit API keys, passwords, tokens, signing keys, certificates, user databases, backups or real receipts.
-- Use environment variables or platform-native secure storage for secrets.
-- Keep dependencies minimal and remove unused packages.
-- Review dependency updates and security alerts promptly.
-- Validate and sanitize all untrusted input.
-- Protect against XSS and unsafe HTML rendering in the web application.
-- Use least-privilege permissions in the Android application.
-- Do not enable debug behavior, verbose sensitive logging or test credentials in production builds.
-- Avoid unnecessary network requests. Sensitive application data must not be transmitted unless a feature explicitly requires it and the user has opted in.
-- Treat imported calendar data, files, backups and receipt data as untrusted input.
-- Perform a security review before releases.
-
-## Sensitive data
-
-The project must not use production user data for tests, examples, screenshots or fixtures. Test data must be synthetic.
+CI führt einen Android-Build, Dependency Review und Secret Scanning aus. Branch Protection und GitHub Secret Scanning sollten zusätzlich in den Repository-Einstellungen aktiviert werden, sofern der Tarif dies unterstützt.
