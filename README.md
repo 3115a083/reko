@@ -29,7 +29,7 @@ Die Planungsgrundlage ist umfangreicher als diese erste Testversion. Geplant sin
 
 ReKo speichert fachliche Daten lokal auf dem Gerät. Es gibt standardmäßig keine Telemetrie und keine Übertragung an einen ReKo-Server. Das Manifest nutzt minimale Berechtigungen, keine breite Speicherberechtigung, kein WRITE_CALENDAR und kein Cleartext-Netzwerk. Backups werden nur nach Nutzeraktion an einen über SAF gewählten Ort geschrieben.
 
-Das öffentliche Repository enthält keine API-Keys, Passwörter, Signing-Schlüssel oder Nutzerdaten. CI umfasst Dependency Review und Secret Scanning. Siehe [SECURITY.md](SECURITY.md).
+Das öffentliche Repository enthält keine API-Keys, Passwörter, Signing-Schlüssel oder Nutzerdaten. CI baut Debug und Release und führt Secret Scanning aus. Ein Dependency-Review-Workflow ist vorhanden; dafür muss zusätzlich GitHubs Dependency Graph in den Repository-Einstellungen aktiviert sein. Siehe [SECURITY.md](SECURITY.md).
 
 ## Build
 
