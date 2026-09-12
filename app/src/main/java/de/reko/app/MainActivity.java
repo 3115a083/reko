@@ -110,13 +110,15 @@ public class MainActivity extends AppCompatActivity {
     private void newProfile(){ EditText e=new EditText(this);e.setHint("Profilname");new AlertDialog.Builder(this).setTitle("Neues Profil").setView(e).setPositiveButton("Anlegen",(d,w)->{String n=e.getText().toString().trim();if(!n.isEmpty()){profileId=db.addProfile(n);db.setActiveProfile(this,profileId);refreshProfileLabel();nav.setSelectedItemId(1);}}).setNegativeButton("Abbrechen",null).show(); }
 
     private TextInputEditText field(String hint){
-        TextInputLayout l=new TextInputLayout(this,null,com.google.android.material.R.attr.textInputOutlinedStyle);
+        TextInputLayout l=new TextInputLayout(this);
+        l.setBoxBackgroundMode(TextInputLayout.BOX_BACKGROUND_OUTLINE);
         l.setHint(hint);
         TextInputEditText e=new TextInputEditText(l.getContext());
         l.addView(e,new LinearLayout.LayoutParams(-1,-2));
         LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-1,-2);p.bottomMargin=dp(12);body.addView(l,p);return e;
     }
     private MaterialButton button(String text){ MaterialButton b=new MaterialButton(this);b.setText(text);b.setAllCaps(false);LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-1,-2);p.bottomMargin=dp(10);body.addView(b,p);return b; }
+    private MaterialButton textButton(String text,int icon,View.OnClickListener listener){MaterialButton b=new MaterialButton(this);b.setText(text);b.setAllCaps(false);b.setGravity(Gravity.START|Gravity.CENTER_VERTICAL);b.setIconResource(icon);b.setIconGravity(MaterialButton.ICON_GRAVITY_TEXT_START);b.setBackgroundTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.TRANSPARENT));int primary=MaterialColors.getColor(b,com.google.android.material.R.attr.colorPrimary);b.setTextColor(primary);b.setIconTint(android.content.res.ColorStateList.valueOf(primary));b.setOnClickListener(listener);return b;}
     private String today(){return new SimpleDateFormat("yyyy-MM-dd",Locale.GERMANY).format(new Date());}
 
     private void tripForm(){ title.setText("Reise");sectionIntro("Neue Reise","Reisedaten bleiben lokal auf diesem Gerät.",R.drawable.ic_trip);TextInputEditText start=field("Startdatum, YYYY-MM-DD");start.setText(today());TextInputEditText end=field("Enddatum, YYYY-MM-DD");end.setText(today());TextInputEditText dest=field("Ziel / Ort");TextInputEditText purpose=field("Beruflicher Anlass");TextInputEditText notes=field("Notizen, optional");MaterialButton save=button("Reise speichern");save.setIconResource(R.drawable.ic_save);save.setOnClickListener(v->{if(blank(dest)||blank(purpose)){toast("Ziel und Anlass fehlen.");return;}db.addTrip(profileId,s(start),s(end),s(dest),s(purpose),s(notes));toast("Reise gespeichert.");nav.setSelectedItemId(1);}); }
@@ -132,8 +134,8 @@ public class MainActivity extends AppCompatActivity {
         Space spacer=new Space(this);body.addView(spacer,new LinearLayout.LayoutParams(1,dp(24)));
         MaterialDivider divider=new MaterialDivider(this);body.addView(divider,new LinearLayout.LayoutParams(-1,dp(1)));
         TextView footerTitle=new TextView(this);footerTitle.setText("ReKo");footerTitle.setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_TitleSmall);footerTitle.setPadding(0,dp(18),0,dp(4));body.addView(footerTitle);
-        MaterialButton github=new MaterialButton(this,null,com.google.android.material.R.attr.materialButtonTextStyle);github.setText("GitHub Repository");github.setIconResource(R.drawable.ic_github);github.setIconGravity(MaterialButton.ICON_GRAVITY_TEXT_START);github.setGravity(Gravity.START);github.setOnClickListener(v->open("https://github.com/3115a083/reko"));body.addView(github,new LinearLayout.LayoutParams(-1,-2));
-        MaterialButton update=new MaterialButton(this,null,com.google.android.material.R.attr.materialButtonTextStyle);update.setText("Nach Updates suchen");update.setIconResource(R.drawable.ic_update);update.setIconGravity(MaterialButton.ICON_GRAVITY_TEXT_START);update.setGravity(Gravity.START);update.setOnClickListener(v->open("https://github.com/3115a083/reko/releases"));body.addView(update,new LinearLayout.LayoutParams(-1,-2));
+        body.addView(textButton("GitHub Repository",R.drawable.ic_github,v->open("https://github.com/3115a083/reko")),new LinearLayout.LayoutParams(-1,-2));
+        body.addView(textButton("Nach Updates suchen",R.drawable.ic_update,v->open("https://github.com/3115a083/reko/releases")),new LinearLayout.LayoutParams(-1,-2));
         TextView f=new TextView(this);f.setText("Vibecoded with ❤️");f.setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodySmall);f.setGravity(Gravity.CENTER);f.setPadding(0,dp(12),0,dp(4));body.addView(f,new LinearLayout.LayoutParams(-1,-2));
     }
 
@@ -142,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout box=new LinearLayout(this);box.setOrientation(LinearLayout.VERTICAL);box.setPadding(dp(16),dp(14),dp(16),dp(14));
         TextView h=new TextView(this);h.setText(heading);h.setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_TitleMedium);box.addView(h);
         for(int i=0;i<rows.length;i++){
-            if(listeners!=null){MaterialButton b=new MaterialButton(this,null,com.google.android.material.R.attr.materialButtonTextStyle);b.setText(rows[i]);b.setAllCaps(false);b.setGravity(Gravity.START);b.setOnClickListener(listeners[i]);box.addView(b,new LinearLayout.LayoutParams(-1,-2));}
+            if(listeners!=null){MaterialButton b=new MaterialButton(this);b.setText(rows[i]);b.setAllCaps(false);b.setGravity(Gravity.START);b.setBackgroundTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.TRANSPARENT));b.setTextColor(MaterialColors.getColor(b,com.google.android.material.R.attr.colorPrimary));b.setOnClickListener(listeners[i]);box.addView(b,new LinearLayout.LayoutParams(-1,-2));}
             else{TextView t=new TextView(this);t.setText(rows[i]);t.setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodyMedium);t.setPadding(0,dp(10),0,0);box.addView(t);}
         }
         card.addView(box);LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-1,-2);p.bottomMargin=dp(14);body.addView(card,p);
