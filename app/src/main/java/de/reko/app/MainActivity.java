@@ -6,7 +6,6 @@ import android.content.*;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.text.InputType;
 import android.view.*;
 import android.widget.*;
@@ -31,7 +30,8 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout body;
     private TextView title, profileLabel;
     private long profileId;
-    private ActivityResultLauncher<String> createBackup, openBackup, calendarPermission;
+    private ActivityResultLauncher<String> createBackup, calendarPermission;
+    private ActivityResultLauncher<String[]> openBackup;
 
     @Override protected void onCreate(Bundle b){ super.onCreate(b); setupLaunchers(); profileId=db.activeProfile(this); buildShell(); handleIntent(getIntent()); }
     @Override protected void onNewIntent(Intent intent){ super.onNewIntent(intent); setIntent(intent); handleIntent(intent); }
@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
     private MaterialButton button(String text){ MaterialButton b=new MaterialButton(this);b.setText(text);body.addView(b,new LinearLayout.LayoutParams(-1,-2));return b; }
     private String today(){return new SimpleDateFormat("yyyy-MM-dd",Locale.GERMANY).format(new Date());}
 
-    private void tripForm(){ title.setText("Reise");TextView h=note("Reise erfassen. Pflichtfelder bleiben lokal auf diesem Gerät.");TextInputEditText start=field("Startdatum, YYYY-MM-DD");start.setText(today());TextInputEditText end=field("Enddatum, YYYY-MM-DD");end.setText(today());TextInputEditText dest=field("Ziel / Ort");TextInputEditText purpose=field("Beruflicher Anlass");TextInputEditText notes=field("Notizen, optional");button("Reise speichern").setOnClickListener(v->{if(blank(dest)||blank(purpose)){toast("Ziel und Anlass fehlen.");return;}db.addTrip(profileId,s(start),s(end),s(dest),s(purpose),s(notes));toast("Reise gespeichert.");overview();}); }
+    private void tripForm(){ title.setText("Reise");note("Reise erfassen. Pflichtfelder bleiben lokal auf diesem Gerät.");TextInputEditText start=field("Startdatum, YYYY-MM-DD");start.setText(today());TextInputEditText end=field("Enddatum, YYYY-MM-DD");end.setText(today());TextInputEditText dest=field("Ziel / Ort");TextInputEditText purpose=field("Beruflicher Anlass");TextInputEditText notes=field("Notizen, optional");button("Reise speichern").setOnClickListener(v->{if(blank(dest)||blank(purpose)){toast("Ziel und Anlass fehlen.");return;}db.addTrip(profileId,s(start),s(end),s(dest),s(purpose),s(notes));toast("Reise gespeichert.");overview();}); }
     private void hospitalityForm(){ title.setText("Bewirtung");note("Bewirtung erfassen. Teilnehmer und geschäftlicher Anlass sind Pflichtfelder.");TextInputEditText date=field("Datum, YYYY-MM-DD");date.setText(today());TextInputEditText place=field("Ort / Betrieb");TextInputEditText amount=field("Betrag in EUR");amount.setInputType(InputType.TYPE_CLASS_NUMBER|InputType.TYPE_NUMBER_FLAG_DECIMAL);TextInputEditText people=field("Teilnehmer");TextInputEditText purpose=field("Geschäftlicher Anlass");TextInputEditText tip=field("Trinkgeld in EUR, optional");tip.setInputType(InputType.TYPE_CLASS_NUMBER|InputType.TYPE_NUMBER_FLAG_DECIMAL);button("Bewirtung speichern").setOnClickListener(v->{if(blank(place)||blank(amount)||blank(people)||blank(purpose)){toast("Bitte Pflichtfelder ergänzen.");return;}try{long cents=Math.round(Double.parseDouble(s(amount).replace(',','.'))*100);long tipC=s(tip).isEmpty()?0:Math.round(Double.parseDouble(s(tip).replace(',','.'))*100);db.addHospitality(profileId,s(date),s(place),cents,s(people),s(purpose),tipC);toast("Bewirtung gespeichert.");overview();}catch(Exception ex){toast("Betrag ist ungültig.");}}); }
     private void overview(){ title.setText("Übersicht");ArrayList<String> items=db.summary(profileId);if(items.isEmpty())note("Noch keine Einträge in diesem Profil.");for(String x:items){MaterialCardView c=new MaterialCardView(this);c.setRadius(dp(14));c.setCardElevation(dp(1));TextView t=new TextView(this);t.setText(x);t.setTextSize(16);t.setPadding(dp(14),dp(12),dp(14),dp(12));c.addView(t);LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-1,-2);p.setMargins(0,0,0,dp(10));body.addView(c,p);} }
     private void settings(){ title.setText("Einstellungen");button("Profil wechseln / verwalten").setOnClickListener(v->chooseProfile());button("Profil-Backup exportieren").setOnClickListener(v->createBackup.launch("reko-backup-"+System.currentTimeMillis()+".json"));button("Backup in aktives Profil importieren").setOnClickListener(v->confirmImport());button("Kalenderzugriff aktivieren").setOnClickListener(v->requestCalendar());button("Öffentliches GitHub-Repository").setOnClickListener(v->open("https://github.com/3115a083/reko"));button("Nach Updates suchen").setOnClickListener(v->open("https://github.com/3115a083/reko/releases"));note("Datenschutz: Local-first. Keine Telemetrie. Keine zentrale ReKo-Datenspeicherung. Android-Systembackup ist deaktiviert.");note("Hinweis: ReKo ersetzt keine Rechts- oder Steuerberatung. Keine Gewähr für Vollständigkeit, Aktualität oder steuerliche Anerkennung.");TextView f=note("Vibecoded with ❤️");f.setGravity(Gravity.CENTER); }
