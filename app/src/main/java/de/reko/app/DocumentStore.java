@@ -5,6 +5,8 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.provider.OpenableColumns;
 import java.io.*;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.*;
 
@@ -23,7 +25,7 @@ final class DocumentStore {
     DocumentStore(Context context,RekoDb db){this.context=context.getApplicationContext();this.db=db;}
 
     Result importUri(long profileId,Uri uri,String fallbackMime) throws Exception {
-        if(uri==null || !"content".equalsIgnoreCase(uri.getScheme())) throw new SecurityException("Nur content-URIs erlaubt");
+        validateExternalContentUri(uri);
         String mime=context.getContentResolver().getType(uri); if(mime==null)mime=fallbackMime;
         String name=displayName(uri);
         try(InputStream in=context.getContentResolver().openInputStream(uri)){
@@ -34,7 +36,18 @@ final class DocumentStore {
 
     Result importFile(long profileId,File file,String name,String mime) throws Exception {
         if(file==null || !file.isFile() || file.length()>MAX_BYTES) throw new IOException("Ungültige Datei");
+        String canonical=file.getCanonicalPath();String files=context.getFilesDir().getCanonicalPath();String cache=context.getCacheDir().getCanonicalPath();
+        if(!(canonical.startsWith(files+File.separator)||canonical.startsWith(cache+File.separator)))throw new SecurityException("Datei außerhalb des App-Speichers");
         try(InputStream in=new FileInputStream(file)){return importStream(profileId,in,name,mime);}
+    }
+
+    private void validateExternalContentUri(Uri uri)throws Exception{
+        if(uri==null || !"content".equalsIgnoreCase(uri.getScheme())) throw new SecurityException("Nur content-URIs erlaubt");
+        String authority=uri.getAuthority();if(authority==null||authority.isBlank())throw new SecurityException("Fehlende URI-Autorität");
+        String own=context.getPackageName();if(authority.equals(own)||authority.startsWith(own+"."))throw new SecurityException("Eigene Provider nicht als externe Quelle erlaubt");
+        String path=uri.getPath();if(path==null)throw new SecurityException("Fehlender URI-Pfad");
+        Path normalized=FileSystems.getDefault().getPath(path).normalize();
+        if(normalized.startsWith("/data")||normalized.startsWith("/proc")||normalized.startsWith("/sys")||normalized.startsWith("/dev"))throw new SecurityException("Privater Systempfad nicht erlaubt");
     }
 
     private Result importStream(long profileId,InputStream raw,String name,String declaredMime) throws Exception {
