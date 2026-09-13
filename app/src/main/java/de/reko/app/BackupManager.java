@@ -21,7 +21,7 @@ final class BackupManager {
             put(zip,"manifest.json",manifest.toString(2).getBytes(StandardCharsets.UTF_8));
             for(String[] a:db.attachments(profileId)){
                 File f=new File(a[4]); if(!f.isFile())continue;
-                String entry="documents/"+a[3]+extension(a[2]);
+                String entry="documents/"+a[3]+DocumentStore.extension(a[2]);
                 zip.putNextEntry(new ZipEntry(entry));
                 try(InputStream in=new FileInputStream(f)){copyLimited(in,zip,DocumentStore.MAX_BYTES);}
                 zip.closeEntry();
@@ -65,8 +65,7 @@ final class BackupManager {
         if(normalized.startsWith("/data")||normalized.startsWith("/proc")||normalized.startsWith("/sys")||normalized.startsWith("/dev"))throw new SecurityException("Privater Systempfad nicht erlaubt");
     }
 
-    private static File findDoc(Map<String,File> docs,String sha,String mime){String prefix=sha+extension(mime);return docs.get(prefix);}
-    private static String extension(String mime){return "application/pdf".equals(mime)?".pdf":"image/png".equals(mime)?".png":".jpg";}
+    private static File findDoc(Map<String,File> docs,String sha,String mime){return docs.get(sha+DocumentStore.extension(mime));}
     private static OutputStream require(OutputStream o)throws IOException{if(o==null)throw new IOException("Ziel nicht verfügbar");return o;}
     private static InputStream require(InputStream i)throws IOException{if(i==null)throw new IOException("Quelle nicht verfügbar");return i;}
     private static void put(ZipOutputStream z,String name,byte[] bytes)throws IOException{z.putNextEntry(new ZipEntry(name));z.write(bytes);z.closeEntry();}
