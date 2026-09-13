@@ -5,6 +5,8 @@ import android.net.Uri;
 import org.json.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.zip.*;
 
@@ -28,6 +30,7 @@ final class BackupManager {
     }
 
     int importProfile(long profileId,Uri source)throws Exception{
+        validateExternalContentUri(source);
         File dir=new File(context.getCacheDir(),"restore-"+UUID.randomUUID());if(!dir.mkdirs())throw new IOException("Temporärer Speicher nicht verfügbar");
         JSONObject manifest=null;Map<String,File> docs=new HashMap<>();long total=0;
         try(InputStream raw=context.getContentResolver().openInputStream(source); ZipInputStream zip=new ZipInputStream(new BufferedInputStream(require(raw)))){
@@ -52,6 +55,14 @@ final class BackupManager {
             DocumentStore.Result r=documents.importFile(profileId,f,a.optString("name","beleg"),mime);if(!r.duplicate)imported++;
         }
         deleteTree(dir);return imported;
+    }
+
+    private void validateExternalContentUri(Uri uri)throws Exception{
+        if(uri==null||!"content".equalsIgnoreCase(uri.getScheme()))throw new SecurityException("Nur content-URIs erlaubt");
+        String authority=uri.getAuthority();if(authority==null||authority.isBlank())throw new SecurityException("Fehlende URI-Autorität");
+        String own=context.getPackageName();if(authority.equals(own)||authority.startsWith(own+"."))throw new SecurityException("Eigene Provider nicht als externe Quelle erlaubt");
+        String rawPath=uri.getPath();if(rawPath==null)throw new SecurityException("Fehlender URI-Pfad");Path normalized=FileSystems.getDefault().getPath(rawPath).normalize();
+        if(normalized.startsWith("/data")||normalized.startsWith("/proc")||normalized.startsWith("/sys")||normalized.startsWith("/dev"))throw new SecurityException("Privater Systempfad nicht erlaubt");
     }
 
     private static File findDoc(Map<String,File> docs,String sha,String mime){String prefix=sha+extension(mime);return docs.get(prefix);}
